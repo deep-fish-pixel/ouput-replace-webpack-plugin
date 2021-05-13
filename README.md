@@ -14,4 +14,21 @@ new OutputReplaceWebpackPlugin({
     match: /\d+\/\d+\/\d+/g,
     conent: formatDate(new Date(), 'yyyy-MM-dd~hh:mm:ss'),
 })
+
+new OutputReplaceWebpackPlugin({
+    replaces: [
+        {
+           file: 'test.json',
+           match: /\d+\/\d+\/\d+/g,
+           conent: formatDate(new Date(), 'yyyy-MM-dd~hh:mm:ss'), 
+        },
+        {  
+           file: 'test.json',
+           match: /(\d+\.\d+\.)(\d+)/g,
+           conent: (all, $1, $2) => {
+            return `${$1}${$2 + 1}`;
+           }, 
+        }
+    ],
+})
 ```

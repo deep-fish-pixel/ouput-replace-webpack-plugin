@@ -2,40 +2,55 @@
  * conf.json中打包日期自动替换
  */
 const fs = require('fs');
-const formatDate = require('./formatDate');
+const path = require('path');
 
 class WebpackOutputReplacePlugin {
   constructor (options) {
     this.options = {
-      file: 'conf.json',
-      match: /\d+\/\d+\/\d+/g,
-      conent: formatDate(new Date(), 'yyyy-MM-dd~hh:mm:ss'),
+      file: '',
+      match: null,
+      conent: null,
+      replaces: [],
     }
-    Object.assign(this.options, options)
+    Object.assign(this.options, options);
+    if (this.options.match) {
+      this.options.replaces({
+        file: this.options.file,
+        match: this.options.match,
+        conent: this.options.conent,
+      });
+    }
   }
   apply (compiler){
-    const options = this.options;
     const pluginName = this.constructor.name;
+    const options = this.options;
+    if ( !options.replaces.length ) {
+      console.error('options can\'t be null!!');
+      return;
+    }
 
-    function handle(compilation, callback) {
-      const basePath = `${compiler.outputPath}/${options.file}`;
-      fs.readFile(basePath, (error, buffer) => {
-        if(error){
-          console.log(error)
-          return;
-        }
-        fs.writeFile(basePath,
-          buffer.toString().replace(options.match, options.conent),
-          () => {
-            callback && callback();
-          });
-      });
+    function handleReplaces(compilation, callback) {
+      options.replaces.forEach((options) => {
+        handleReplace(options);
+      })
+      if(callback){
+        callback();
+      }
+    }
+
+    function handleReplace(options) {
+      const basePath = path.join(compiler.outputPath, options.file);
+      const buffer = fs.readFileSync(basePath);
+      fs.writeFileSync(
+        basePath,
+        buffer.toString().replace(options.match, options.conent),
+      );
     }
 
     if (compiler.hooks) {
-      compiler.hooks.done.tapAsync(pluginName, handle);
+      compiler.hooks.done.tapAsync(pluginName, handleReplaces);
     } else {
-      compiler.plugin('done', handle);
+      compiler.plugin('done', handleReplaces);
     }
   }
 }
