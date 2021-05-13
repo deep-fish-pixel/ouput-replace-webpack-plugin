@@ -1,6 +1,6 @@
 {
   "name": "ouput-replace-webpack-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "replace webpack output file content",
   "main": "index.js",
   "scripts": {
